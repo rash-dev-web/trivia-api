@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy 
-from sqlalchemy import desc
+from sqlalchemy import desc, not_
 from flask_cors import CORS
 import random
 
@@ -24,9 +24,9 @@ def create_app(test_config=None):
     """
     CORS(app)
 
-    @app.route('/')
-    def hello():
-        return jsonify({'message': 'hello'})
+    # @app.route('/')
+    # def hello():
+    #     return jsonify({'message': 'hello'})
     """
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
@@ -45,7 +45,7 @@ def create_app(test_config=None):
     def get_categories():
         # categories=Category.query.order_by(desc(Category.id)).all()
         categories = Category.query.order_by(Category.id).all()
-        formatted_categories = [category.format() for category in categories]
+        formatted_categories = {category.id: category.type for category in categories}
 
         if len(formatted_categories) == 0:
             abort(404)
@@ -69,16 +69,22 @@ def create_app(test_config=None):
     """
     @app.route('/questions', methods=['GET'])
     def get_questions():
-        page = request.args.get('page', 1, type=int)
-        start = (page -1) * 10
-        end = start + 10
-        questions = Question.query.all()
-        formatted_questions = [question.format() for question in questions]
-        return jsonify({
-            'success:': True,
-            'questions': formatted_questions[start:end],
-            'total_questions': len(formatted_questions)
-            })
+        
+            page = request.args.get('page', 1, type=int)
+            start = (page -1) * 10
+            end = start + 10
+            questions = Question.query.all()
+            formatted_questions = [question.format() for question in questions]
+            if len(formatted_questions) == 0:
+                abort(404)
+            return jsonify({
+                'success': True,
+                'questions': formatted_questions[start:end],
+                'total_questions': len(formatted_questions),
+                'categories': {category.id: category.type for category in Category.query.all()},
+                'current_category': 'None'
+                })
+        
 
     """
     @TODO:
@@ -89,9 +95,9 @@ def create_app(test_config=None):
     """
     @app.route('/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
-        try: 
+        
             question = Question.query.filter(Question.id == question_id).one_or_none()
-
+            print(question)
             if question is None:
                 abort(404)
             question.delete()
@@ -99,8 +105,7 @@ def create_app(test_config=None):
             return jsonify({
                 "success" : True
         })
-        except:
-            abort(422)
+        
 
 
     """
@@ -114,14 +119,16 @@ def create_app(test_config=None):
     of the questions list in the "List" tab.
     """
     @app.route('/questions', methods=['POST'])
-    def add_questions():
-        body = request.get_json()
-        new_question = body.get('question')
-        new_answer = body.get('answer', None)
-        new_category = body.get('category', None)
-        new_difficulty = body.get('difficulty', None)
+    def add_questions():       
 
-        try:
+        
+            body = request.get_json()
+            new_question = body.get('question')
+            new_answer = body.get('answer')
+            new_category = body.get('category')
+            new_difficulty = body.get('difficulty')
+            if 'question' not in body or 'answer' not in body or 'category' not in body or 'difficulty' not in body:
+                abort(400)
             question = Question(
                 question=new_question,
                 answer= new_answer,
@@ -129,12 +136,14 @@ def create_app(test_config=None):
                 difficulty= new_difficulty
                 )
             question.insert()
-            
+            formatted_questions = [question.format() for question in Question.query.all()]
             return jsonify({
-                'success': True
+                'success': True,
+                'created': question.id,
+                'questions': formatted_questions,
+                'total_questions': len(formatted_questions)
             })
-        except:
-            abort(400)
+        
 
     """
     @TODO:
@@ -146,9 +155,26 @@ def create_app(test_config=None):
     only question that include that string within their question.
     Try using the word "title" to start.
     """
-    # @app.route('/questions/<search_term>', methods=['POST'])
-    # def get_questions(search_term):
-    #     return jsonify({})
+    @app.route('/questions/search', methods=['POST'])
+    def search_questions_by_term():
+        
+            body = request.get_json()
+            search_term = body.get('searchTerm')
+            search_results = Question.query.filter(
+                Question.question.ilike("%{}%".format(search_term))).all()
+            formatted_questions = [question.format() for question in search_results]
+            if len(formatted_questions) == 0:
+                 abort(404)
+            if search_term == None:
+                abort(400)
+            else:
+                return jsonify({
+                    'success': True,
+                    'questions': formatted_questions,
+                    'total_questions': len(formatted_questions)
+
+                })
+        
 
     """
     @TODO:
@@ -158,17 +184,21 @@ def create_app(test_config=None):
     categories in the left column will cause only questions of that
     category to be shown.
     """
-    @app.route('/questions/<int:category_type>', methods=['GET'])
-    def get_questions_by_category(category_type):
-        questions = Question.query.filter(Question.category == category_type)
-        formatted_questions = [question.format() for question in questions]
-        if questions is None:
-            abort(404)
-        else:
-            return jsonify({
-                'success': True,
-                'questions': formatted_questions
-            })
+    @app.route('/categories/<int:category_id>/questions', methods=['GET'])
+    def get_questions_by_category(category_id):
+        
+                questions = Question.query.filter(Question.category == category_id).all()
+                formatted_questions = [question.format() for question in questions]
+                if len(formatted_questions) == 0:
+                    abort(404)
+                else:
+                    return jsonify({
+                        'success': True,
+                        'questions': formatted_questions,
+                        'total_questions': len(formatted_questions),
+                        'current_category': category_id
+                    })
+            
 
     """
     @TODO:
@@ -181,9 +211,31 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     """
-    # @app.route('/questions/<>', methods=['POST'])
-    # def get_questions_by_cat_pre():
-    #     return jsonify({})
+    @app.route('/quizzes', methods=['POST'])
+    def get_questions_for_quizz():
+        
+            body = request.get_json()
+            quiz_category = body.get('quiz_category', random.randint(1, 7))
+            previous_questions = body.get('previous_questions', 12)
+            # quiz_category = 4
+            # previous_questions = 12
+            
+            if 'quiz_category' not in body or 'previous_questions' not in body:
+                abort(400)
+
+            if quiz_category == 0:
+                random_questions = Question.query.filter(not_(Question.id == previous_questions)).all()
+            else:
+                random_questions = Question.query.filter(not_(Question.id == previous_questions), Question.category == quiz_category).all() 
+            
+            random_question = random.choice(random_questions)
+            return jsonify({
+                'success': True,
+                'question': random_question.format()
+
+            })
+        
+        
 
     """
     @TODO:
