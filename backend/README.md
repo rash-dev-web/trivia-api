@@ -73,7 +73,7 @@ You will need to provide detailed documentation of your API endpoints including 
 
 ### Documentation Example
 
-`GET '/api/v1.0/categories'`
+`GET '/categories'`
 
 - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - Request Arguments: None
@@ -90,6 +90,160 @@ You will need to provide detailed documentation of your API endpoints including 
 }
 ```
 
+`GET '/questions'`
+
+- Fetches a array of questions which contains the dictionary of all the questions
+- Request Arguments: None
+- Returns: An array of `questions`, that contains a list of all the questions along with categories and success message.
+
+```json
+{
+  "categories": {
+    "1": "Science",
+    "2": "Art",
+    "3": "Geography",
+    "4": "History",
+    "5": "Entertainment",
+    "6": "Sports"
+  },
+  "current_category": "None",
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Muhammad Ali",
+      "category": 4,
+      "difficulty": 1,
+      "id": 9,
+      "question": "What boxer's original name is Cassius Clay?"
+    }
+  ],
+  "success": true,
+  "total_questions": 2
+}
+```
+
+`POST '/questions'`
+
+- Adds a new questoin to database
+- Request Arguments: {
+  "question": "Test 1",
+  "answer": "Test",
+  "category": 1,
+  "difficulty": 4
+  }'
+- Returns: An object with list of all the questions including the new one, total question count with success message.
+
+```json
+{
+  "created": 129,
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    },
+    {
+      "answer": "Test",
+      "category": 1,
+      "difficulty": 4,
+      "id": 129,
+      "question": "Test 1"
+    }
+  ],
+  "success": true,
+  "total_questions": 2
+}
+```
+
+`DELETE '/questions/<question_id>'`
+
+- Deletes the question provided in path parameter
+- Request Arguments: None
+- Returns: An object with a single key, `success`, that contains the success message.
+
+```json
+{
+  "success": true
+}
+```
+
+`POST '/questions/search'`
+
+- Searchs the text provided in request body
+- Request Arguments: {
+  "searchTerm": "test"
+  }
+- Returns: An array with key `questions` that contains the question details along with success message and number of count
+
+```json
+{
+  "questions": [
+    {
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```
+
+`GET '/categories/<category_id>/questions'`
+
+- Searchs the category id provided in the path parameter
+- Request Arguments: None
+- Returns: An array with key `questions` that contains the question details along with success message and number of count
+
+```json
+{
+  "current_category": 2,
+  "questions": [
+    {
+      "answer": "Escher",
+      "category": 2,
+      "difficulty": 1,
+      "id": 16,
+      "question": "Which Dutch graphic artist-initials M C was a creator of optical illusions?"
+    }
+  ],
+  "success": true,
+  "total_questions": 1
+}
+```
+
+`POST '/quizzes'`
+
+- Displays a question based on quiz category and previous question provided in request body
+- Request Arguments: {
+  "quiz_category":4,
+  "previous_questions": 12
+  }
+- Returns: An object with key `questions` that contains the question details along with success message
+
+```json
+{
+  "question": {
+    "answer": "Maya Angelou",
+    "category": 4,
+    "difficulty": 2,
+    "id": 5,
+    "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+  },
+  "success": true
+}
+```
+
 ## Testing
 
 Write at least one test for the success and at least one error behavior of each endpoint using the unittest library.
@@ -97,8 +251,8 @@ Write at least one test for the success and at least one error behavior of each 
 To deploy the tests, run
 
 ```bash
-dropdb trivia_test
-createdb trivia_test
-psql trivia_test < trivia.psql
+dropdb trivia
+createdb trivia
+psql trivia < trivia.psql
 python test_flaskr.py
 ```

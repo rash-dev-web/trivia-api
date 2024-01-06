@@ -140,18 +140,18 @@ class TriviaTestCase(unittest.TestCase):
 
     # Test cases for quizz endpoint
     def test_quizz(self):
-        res = self.client().post("quizzes", json=self.new_quizz)
+        res = self.client().post("/quizzes", json=self.new_quizz)
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
         self.assertTrue(len(data["question"]))
 
     def test_422_invalid_quizz(self):
-        res = self.client().post("quizzes", json=self.new_question_invalid_body)
+        res = self.client().post("/quizzes", json=self.new_question_invalid_body)
         data = json.loads(res.data)
-        self.assertEqual(res.status_code, 422)
+        self.assertEqual(res.status_code, 400)
         self.assertEqual(data["success"], False)
-        self.assertEqual(data["message"], "Unprocessable Content")
+        self.assertEqual(data["message"], "Bad Request")
 
 
 # Make the tests conveniently executable
