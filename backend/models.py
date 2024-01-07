@@ -5,9 +5,12 @@ import json
 from dotenv import dotenv_values
 
 config = dotenv_values()
-database_name = config['DBNAME']
+database_name = config["DBNAME"]
 database_path = "postgresql://{}:{}@{}/{}".format(
-    config['USERNAME'], config['PASSWORD'], config['HOSTNAME']+":"+config['PORT'], database_name
+    config["USERNAME"],
+    config["PASSWORD"],
+    config["HOSTNAME"] + ":" + config["PORT"],
+    database_name,
 )
 
 db = SQLAlchemy()

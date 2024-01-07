@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import dotenv_values
 
 
-
 from flaskr import create_app
 from models import setup_db, Question, Category
 
@@ -18,11 +17,14 @@ class TriviaTestCase(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         config = dotenv_values()
-        self.database_name = config['DBNAME']
+        self.database_name = config["DBNAME"]
         self.database_path = "postgresql://{}:{}@{}/{}".format(
-            config['USERNAME'], config['PASSWORD'], config['HOSTNAME']+":"+config['PORT'], self.database_name
+            config["USERNAME"],
+            config["PASSWORD"],
+            config["HOSTNAME"] + ":" + config["PORT"],
+            self.database_name,
         )
-        
+
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
@@ -43,8 +45,8 @@ class TriviaTestCase(unittest.TestCase):
             "answer": "Charles",
             "category": 1,
         }
-        self.new_quizz = {"quiz_category": 4, "previous_questions": 12}
-        self.new_quizz_invalid = {"quiz_category": 44, "previous_questions": 999}
+        self.new_quizz = {"quiz_category": 4, "previous_questions": [5, 12]}
+        self.new_quizz_invalid = {"quiz_category": 44, "previous_questions": [999]}
 
     def tearDown(self):
         """Executed after reach test"""

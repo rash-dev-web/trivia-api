@@ -227,7 +227,7 @@ You will need to provide detailed documentation of your API endpoints including 
 - Displays a question based on quiz category and previous question provided in request body
 - Request Arguments: {
   "quiz_category":4,
-  "previous_questions": 12
+  "previous_questions": [12]
   }
 - Returns: An object with key `questions` that contains the question details along with success message
 
