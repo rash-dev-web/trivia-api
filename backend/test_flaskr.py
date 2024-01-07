@@ -2,6 +2,8 @@ import os
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import dotenv_values
+
 
 
 from flaskr import create_app
@@ -15,10 +17,12 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia"
+        config = dotenv_values()
+        self.database_name = config['DBNAME']
         self.database_path = "postgresql://{}:{}@{}/{}".format(
-            "postgres", "myuser**", "127.0.0.1:5432", self.database_name
+            config['USERNAME'], config['PASSWORD'], config['HOSTNAME']+":"+config['PORT'], self.database_name
         )
+        
         setup_db(self.app, self.database_path)
 
         # binds the app to the current context
